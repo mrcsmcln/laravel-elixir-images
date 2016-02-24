@@ -1,0 +1,30 @@
+{
+  "name": "laravel-elixir-images",
+  "version": "0.1.0",
+  "description": "Laravel Elixir Images Extension",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "laravel",
+    "elixir",
+    "imagemin",
+    "responsive",
+    "gulp"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrcsmcln/laravel-elixir-images"
+  },
+  "author": "Marcus McLean",
+  "license": "MIT",
+  "homepage": "https://github.com/mrcsmcln/laravel-elixir-images",
+  "bugs": {
+    "url": "https://github.com/mrcsmcln/laravel-elixir-images/issues"
+  },
+  "dependencies": {
+    "gulp-imagemin": "^2.4.0",
+    "gulp-responsive": "^2.1.0"
+  }
+}
