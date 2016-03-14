@@ -38,8 +38,6 @@ Elixir.extend('images', function(src, output, sizes, options, extnames) {
         }, extnames: ['webp']
     }
 
-    console.log(config.production);
-
     var sizes = sizes || config.images.sizes;
     var extnames = extnames === null ? extnames : extnames || config.images.extnames;
 
