@@ -3,7 +3,13 @@ var Elixir = require('laravel-elixir');
 
 var $ = Elixir.Plugins;
 var config = Elixir.config;
+var _ = require('underscore');
 
+_.mixin({
+    deepExtend: require('underscore-deep-extend')(_)
+});
+
+$.changed = require('gulp-changed');
 $.responsive = require('gulp-responsive');
 
 /*
@@ -17,31 +23,57 @@ $.responsive = require('gulp-responsive');
  |
  */
 
-Elixir.extend('images', function(src, output, sizes, options) {
+Elixir.extend('images', function(src, output, sizes, options, extnames) {
     config.images = {
         folder: 'images',
         outputFolder: 'img',
-        sizes: {
-            '**/*': [{
-                width: 544,
-                rename: {suffix: '-544'}
-            }, {
-                width: 768,
-                rename: {suffix: '-768'}
-            }, {
-                width: 992,
-                rename: {suffix: '-992'}
-            }, {
-                width: 1200,
-                rename: {suffix: '-1200'}
-            }, {
-                // Empty object copies original image
-            }]
-        }, options: {
-            quality: 50,
-            progressive: true
+        sizes: [544, 768, 992, 1200, null],
+        options: {
+            quality: 100,
+            progressive: true,
+            compressionLevel: 9,
+            errorOnUnusedConfig: false,
+            errorOnUnusedImage: false,
+            errorOnEnlargement: false,
+        }, extnames: ['webp']
+    }
+
+    console.log(config.production);
+
+    var sizes = sizes || config.images.sizes;
+    var extnames = extnames === null ? extnames : extnames || config.images.extnames;
+
+    _.deepExtend(config.images.options, options);
+
+    var configuration = {};
+    configuration[src] = [];
+
+    var baseConfiguration, size, extnamesIndex;
+
+    var sizesIndex = sizes.length
+    while (sizesIndex--) {
+        size = sizes[sizesIndex];
+
+        baseConfiguration = {}
+
+        if (size) {
+            baseConfiguration.rename = {suffix: '-' + size}
+            baseConfiguration.width = size;
         }
-    };
+
+        configuration[src].push(baseConfiguration);
+
+        if (extnames !== null) {
+            extnamesIndex = config.images.extnames.length;
+            while (extnamesIndex--) {
+                configuration[src].push(_.deepExtend({
+                    rename: {
+                        extname: '.' + config.images.extnames[extnamesIndex]
+                    }
+                }, baseConfiguration));
+            }
+        }
+    }
 
     var paths = prepGulpPaths(src, output);
 
@@ -51,7 +83,8 @@ Elixir.extend('images', function(src, output, sizes, options) {
         return (
             gulp
             .src(paths.src.path)
-            .pipe($.responsive(sizes || config.images.sizes, options || config.images.options)
+            .pipe($.changed(paths.output.baseDir))
+            .pipe($.responsive(configuration, config.images.options)
                 .on('error', function(e) {
                     new Elixir.Notification().error(e, 'Images Compilation Failed!');
                     this.emit('end');
@@ -60,7 +93,7 @@ Elixir.extend('images', function(src, output, sizes, options) {
             .pipe(new Elixir.Notification('Images Compiled!'))
         );
     })
-    .watch()
+    .watch(paths.src.path)
 });
 
 
