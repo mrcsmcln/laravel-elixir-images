@@ -14,10 +14,10 @@ $.responsive = require('gulp-responsive');
 
 /*
  |----------------------------------------------------------------
- | Nunjucks Compilation
+ | Images Compilation
  |----------------------------------------------------------------
  |
- | This task offers a simple way to render your Nunjucks assets.
+ | This task offers an easy way to minify and resize any images.
  | You can either render a single file or a entire directory.
  | Don't forget the path if you specify alternate options.
  |
