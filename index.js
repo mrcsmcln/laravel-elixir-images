@@ -10,7 +10,12 @@ _.mixin({
 });
 
 $.changed = require('gulp-changed');
+$.filter = require('gulp-filter');
+$.if = require('gulp-if');
+$.imagemin = require('gulp-imagemin');
 $.responsive = require('gulp-responsive');
+
+var lazypipe = require('lazypipe');
 
 /*
  |----------------------------------------------------------------
@@ -23,73 +28,145 @@ $.responsive = require('gulp-responsive');
  |
  */
 
-Elixir.extend('images', function(src, output, sizes, options, extnames) {
-    config.images = {
+Elixir.extend('images', function(src, output, options) {
+    config.images = _.deepExtend({
         folder: 'images',
         outputFolder: 'img',
-        sizes: [544, 768, 992, 1200, null],
-        options: {
+        sizes: [[], [1200], [992], [768], [544]],
+        webp: true,
+        extensions: {
+            gif: {
+                interlaced: true
+            }, jpg: {
+                progressive: true,
+                arithmetic: true
+            }, png: {
+                optimizationLevel: 7
+            }, svg: {
+                plugins: [{
+                    cleanupIDs: false
+                }, {
+                    removeDimensions: true
+                }, {
+                    removeUselessDefs: false
+                }]
+            }, webp: {
+                lossless: true,
+                method: 6
+            }
+        }, optimizers: {
+            gif: require('imagemin-gifsicle'),
+            jpg: require('imagemin-jpegtran'),
+            png: require('imagemin-optipng'),
+            svg: require('imagemin-svgo'),
+            webp: require('imagemin-webp')
+        }, responsive: {
             quality: 100,
-            progressive: true,
             compressionLevel: 9,
             errorOnUnusedConfig: false,
             errorOnUnusedImage: false,
             errorOnEnlargement: false,
-        }, extnames: ['webp']
-    }
+            stats: false,
+            silent: true
+        }
+    }, config.images);
 
-    var sizes = sizes || config.images.sizes;
-    var extnames = extnames === null ? extnames : extnames || config.images.extnames;
+    options = {
+        responsive: options && options.responsive || config.images.responsive,
+        optimizers: options && options.optimizers || config.images.optimizers,
+        extensions: options && options.extensions || config.images.extensions,
+        sizes: options && options.sizes || config.images.sizes,
+        webp: options && options.webp || config.images.webp
+    };
 
-    _.deepExtend(config.images.options, options);
+    var sizesIndex = options.sizes.length;
+    var configuration = {
+        '**/*': []
+    };
 
-    var configuration = {};
-    configuration[src] = [];
-
-    var baseConfiguration, size, extnamesIndex;
-
-    var sizesIndex = sizes.length
     while (sizesIndex--) {
-        size = sizes[sizesIndex];
+        var size = options.sizes[sizesIndex];
+        var baseConfiguration = {}
 
-        baseConfiguration = {}
+        if (size.length) {
+            var width = size[0];
+            var height = size[1];
 
-        if (size) {
-            baseConfiguration.rename = {suffix: '-' + size}
-            baseConfiguration.width = size;
+            baseConfiguration.width = width;
+            baseConfiguration.rename = {
+                suffix: '-' + width
+            }
+            
+            if (height) {
+                baseConfiguration.height = height;
+                baseConfiguration.rename.suffix += 'x' + height;
+            }
+            
+            baseConfiguration.crop = size[2] || false;
         }
 
-        configuration[src].push(baseConfiguration);
+        configuration['**/*'].push(baseConfiguration);
 
-        if (extnames !== null) {
-            extnamesIndex = config.images.extnames.length;
-            while (extnamesIndex--) {
-                configuration[src].push(_.deepExtend({
-                    rename: {
-                        extname: '.' + config.images.extnames[extnamesIndex]
-                    }
-                }, baseConfiguration));
-            }
+        if (options.webp) {
+            configuration['**/*'].push(_.deepExtend({
+                rename: {
+                    extname: '.webp'
+                }
+            }, baseConfiguration));
         }
     }
+
+    var imageminPipe = lazypipe();
+
+    Object.keys(config.images.optimizers).forEach(function (value, index) {
+        var filter = $.filter('**/*.' + value, {
+            restore: true,
+            passthrough: false
+        });
+
+        imageminPipe = imageminPipe
+            .pipe(function () {
+                return filter;
+            }).pipe(config.images.optimizers[value](options.extensions[value]))
+            .pipe(function () {
+                return filter.restore;
+            })
+        ;
+    });
+
+    var responsiveFilter = $.filter(['**/*', '!**/*.{gif,svg}'], {
+        restore: true,
+        passthrough: false
+    });
+
+    var responsivePipe = lazypipe()
+        .pipe(function () {
+            return responsiveFilter;
+        }).pipe(function () {
+            return $.responsive(configuration, options.responsive)
+                .on('error', function(e) {
+                    new Elixir.Notification().error(e, 'Images Compilation Failed!');
+                    this.emit('end');
+                })
+            ;
+        }).pipe(function () {
+            return responsiveFilter.restore;
+        })
+    ;
 
     var paths = prepGulpPaths(src, output);
 
     new Elixir.Task('images', function() {
         this.log(paths.src, paths.output);
 
-        return (
-            gulp
+        return gulp
             .src(paths.src.path)
-            .pipe($.changed(paths.output.baseDir))
-            .pipe($.responsive(configuration, config.images.options)
-                .on('error', function(e) {
-                    new Elixir.Notification().error(e, 'Images Compilation Failed!');
-                    this.emit('end');
-                }))
+            .pipe($.if(!config.production, $.changed(paths.output.baseDir)))
+            .pipe(responsivePipe())
+            .pipe($.if(config.production, imageminPipe()))
             .pipe(gulp.dest(paths.output.baseDir))
             .pipe(new Elixir.Notification('Images Compiled!'))
-        );
+        ;
     })
     .watch(paths.src.path)
 });
@@ -99,12 +176,12 @@ Elixir.extend('images', function(src, output, sizes, options, extnames) {
  * Prep the Gulp src and output paths.
  *
  * @param  {string|Array} src
- * @param  {string|null}  baseDir
  * @param  {string|null}  output
  * @return {GulpPaths}
  */
 var prepGulpPaths = function(src, output) {
     return new Elixir.GulpPaths()
         .src(src, config.get('assets.images.folder'))
-        .output(output || config.get('public.images.outputFolder'), '.');
-}
+        .output(output || config.get('public.images.outputFolder'), '.')
+    ;
+};
