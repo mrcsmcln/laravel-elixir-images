@@ -41,7 +41,7 @@ Assuming you write...
 
 ```js
 elixir(function(mix) {
-	mix.images('.');
+    mix.images('.');
 });
 ```
 
@@ -70,7 +70,7 @@ You can specify different settings like so:
 
 ```js
 mix.images('image.jpg', null, {
-	sizes: [[], [1920], [1280, 720], [640, 480, 'west']]
+    sizes: [[], [1920], [1280, 720], [640, 480, 'west']]
 })
 ```
 
@@ -87,9 +87,9 @@ You can use different optimizers instead of the default (lossless) ones:
 
 ```js
 mix.images('image.jpg', null, {
-	optimizers: {
-		jpg: require('imagemin-jpegoptim')
-	}
+    optimizers: {
+        jpg: require('imagemin-jpegoptim')
+    }
 })
 ```
 
@@ -101,12 +101,12 @@ You can change the options of the various image optimizers like so:
 
 ```js
 mix.images('image.jpg', null, {
-	extensions: {
-		jpg: {
-			progressive: true,
-			max: 50
-		}
-	}
+    extensions: {
+        jpg: {
+            progressive: true,
+            max: 50
+        }
+    }
 })
 ```
 
@@ -116,6 +116,6 @@ You can turn off WebP output with the following option:
 
 ```js
 mix.images('.', null, {
-	webp: false
+    webp: false
 })
 ```
