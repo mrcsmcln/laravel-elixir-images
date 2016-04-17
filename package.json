@@ -1,6 +1,6 @@
 {
   "name": "laravel-elixir-images",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Laravel Elixir Images Extension",
   "main": "index.js",
   "scripts": {
