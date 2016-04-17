@@ -1,24 +1,23 @@
 # Laravel Elixir Images
 
-## Usage
+This Laravel Elixir extension makes resizing and optimizing images a breeze. It depends on `gulp-responsive`, which depends on [sharp](https://www.npmjs.com/package/sharp). Please make sure sharp is installed before attempting to install this extension.
 
-This Laravel Elixir extension allows you to resize and optimize images.
+## Usage
 
 Use it like this:
 
 ```
 gulp images
-gulp images --production
 ```
 
-The `--production` flag will engage image optimization in addition to resizing.
+The `--production` flag will engage image optimization in addition to resizing. Works with `gulp watch`, too.
 
 ## Installation
 
 First, pull in the extension through NPM.
 
 ```
-npm install --save-dev laravel-elixir-images
+npm install --save laravel-elixir-images
 ```
 
 Next, add it to your Elixir-enhanced Gulpfile, like so:
@@ -45,12 +44,12 @@ elixir(function(mix) {
 });
 ```
 
-...this will compile images in `resources/assets/images` to `./public/img`.
+...this will compile images in `resources/assets/images` to `public/img`.
 
 If you'd like to set a different output directory, you may pass a second argument to the `images()` method, like so:
 
 ```js
-mix.stylus('.', './public/images')
+mix.images('.', 'public/images')
 ```
 
 Finally, if you want to override the images plugin options, you may pass an object as the third argument.
@@ -59,14 +58,14 @@ Finally, if you want to override the images plugin options, you may pass an obje
 mix.images('.', null, {});
 
 // See options at:
-//  node_modules/laravel-elixir-images/index.js
+//  https://github.com/mrcsmcln/laravel-elixir-images/blob/master/index.js#L31
 //  https://github.com/mahnunchik/gulp-responsive
 //  https://www.npmjs.com/browse/keyword/imageminplugin
 ```
 
 ### Sizes
 
-You can specify different settings like so:
+You can specify different size settings like so:
 
 ```js
 mix.images('image.jpg', null, {
