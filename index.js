@@ -185,6 +185,8 @@ Elixir.extend('images', function(src, output, options) {
  * @return {GulpPaths}
  */
 var prepGulpPaths = function(src, output) {
+    src = src || '.';
+    
     return new Elixir.GulpPaths()
         .src(src, config.get('assets.images.folder'))
         .output(output || config.get('public.images.outputFolder'), '.')
