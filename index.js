@@ -116,48 +116,54 @@ Elixir.extend('images', function(src, output, options) {
         }
     }
 
-    var imageminPipe = lazypipe();
-
-    Object.keys(config.images.optimizers).forEach(function (value, index) {
-        var filter = $.filter('**/*.' + value, {
-            restore: true,
-            passthrough: false
-        });
-
-        imageminPipe = imageminPipe
-            .pipe(function () {
-                return filter;
-            }).pipe(config.images.optimizers[value](options.extensions[value]))
-            .pipe(function () {
-                return filter.restore;
-            })
-        ;
-    });
-
-    var responsiveFilter = $.filter(['**/*', '!**/*.{gif,svg}'], {
-        restore: true,
-        passthrough: false
-    });
-
-    var responsivePipe = lazypipe()
-        .pipe(function () {
-            return responsiveFilter;
-        }).pipe(function () {
-            return $.responsive(configuration, options.responsive)
-                .on('error', function(e) {
-                    new Elixir.Notification().error(e, 'Images Compilation Failed!');
-                    this.emit('end');
-                })
-            ;
-        }).pipe(function () {
-            return responsiveFilter.restore;
-        })
-    ;
-
     var paths = prepGulpPaths(src, output);
 
     new Elixir.Task('images', function() {
         this.log(paths.src, paths.output);
+
+        var imageminPipe = lazypipe();
+
+        Object.keys(config.images.optimizers).forEach(function (value, index) {
+            var filter = $.filter('**/*.' + value, {
+                restore: true,
+                passthrough: false
+            });
+
+            imageminPipe = imageminPipe
+                .pipe(function () {
+                    return filter;
+                }).pipe(function () {
+                    return config.images.optimizers[value](options.extensions[value])()
+                        .on('error', function(e) {
+                            new Elixir.Notification().error(e, 'Images Compilation Failed!');
+                            this.emit('end');
+                        })
+                    ;
+                }).pipe(function () {
+                    return filter.restore;
+                })
+            ;
+        });
+
+        var responsiveFilter = $.filter(['**/*', '!**/*.{gif,svg}'], {
+            restore: true,
+            passthrough: false
+        });
+
+        var responsivePipe = lazypipe()
+            .pipe(function () {
+                return responsiveFilter;
+            }).pipe(function () {
+                return $.responsive(configuration, options.responsive)
+                    .on('error', function(e) {
+                        new Elixir.Notification().error(e, 'Images Compilation Failed!');
+                        this.emit('end');
+                    })
+                ;
+            }).pipe(function () {
+                return responsiveFilter.restore;
+            })
+        ;
 
         return gulp
             .src(paths.src.path)
