@@ -12,7 +12,6 @@ _.mixin({
 $.changed = require('gulp-changed');
 $.filter = require('gulp-filter');
 $.if = require('gulp-if');
-$.imagemin = require('gulp-imagemin');
 $.responsive = require('gulp-responsive');
 
 var lazypipe = require('lazypipe');
