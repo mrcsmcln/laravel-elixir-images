@@ -93,7 +93,7 @@ mix.images('image.jpg', null, {
 })
 ```
 
-It's probably recommended that you use lossy optimizers; lossless ones are included for the sake of the [POLA](https://en.wikipedia.org/wiki/Principle_of_least_astonishment).
+It's probably recommended that you use lossy optimizers; lossless ones are included for the sake of the [POLA](https://en.wikipedia.org/wiki/Principle_of_least_astonishment). Find more optimizers [here](https://www.npmjs.com/browse/keyword/imageminplugin).
 
 ### Extensions
 
