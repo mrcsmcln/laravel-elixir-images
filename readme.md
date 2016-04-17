@@ -28,7 +28,7 @@ var elixir = require('laravel-elixir');
 require('laravel-elixir-images');
 
 elixir(function(mix) {
-   mix.images('.');
+   mix.images(null);
 });
 ```
 
@@ -40,7 +40,7 @@ Assuming you write...
 
 ```js
 elixir(function(mix) {
-    mix.images('.');
+    mix.images(null);
 });
 ```
 
@@ -49,13 +49,13 @@ elixir(function(mix) {
 If you'd like to set a different output directory, you may pass a second argument to the `images()` method, like so:
 
 ```js
-mix.images('.', 'public/images')
+mix.images(null, 'public/images')
 ```
 
 Finally, if you want to override the images plugin options, you may pass an object as the third argument.
 
 ```js
-mix.images('.', null, {});
+mix.images(null, null, {});
 
 // See options at:
 //  https://github.com/mrcsmcln/laravel-elixir-images/blob/master/index.js#L31
@@ -114,7 +114,7 @@ mix.images('image.jpg', null, {
 You can turn off WebP output with the following option:
 
 ```js
-mix.images('.', null, {
+mix.images(null, null, {
     webp: false
 })
 ```
