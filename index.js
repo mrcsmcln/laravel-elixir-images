@@ -33,32 +33,66 @@ Elixir.extend('images', function(src, output, options) {
         outputFolder: 'img',
         sizes: [[], [1200], [992], [768], [544]],
         webp: true,
+        lossy: false,
         extensions: {
-            gif: {
-                interlaced: true
-            }, jpg: {
-                progressive: true,
-                arithmetic: true
-            }, png: {
-                optimizationLevel: 7
-            }, svg: {
-                plugins: [{
-                    cleanupIDs: false
-                }, {
-                    removeDimensions: true
-                }, {
-                    removeUselessDefs: false
-                }]
-            }, webp: {
-                lossless: true,
-                method: 6
+            lossy: {
+                gif: {
+                    interlaced: true,
+                    lossy: 80,
+                    optimize: 3,
+                }, jpg: {
+                    max: 80,
+                    progressive: true
+                }, png: {
+                    quality: 80,
+                    speed: 1
+                }, svg: {
+                    plugins: [{
+                        cleanupIDs: false
+                    }, {
+                        removeDimensions: true
+                    }, {
+                        removeUselessDefs: false
+                    }]
+                }, webp: {
+                    lossless: false,
+                    method: 6,
+                    quality: 80
+                }
+            }, lossless: {
+                gif: {
+                    interlaced: true
+                }, jpg: {
+                    progressive: true
+                }, png: {
+                    optimizationLevel: 7
+                }, svg: {
+                    plugins: [{
+                        cleanupIDs: false
+                    }, {
+                        removeDimensions: true
+                    }, {
+                        removeUselessDefs: false
+                    }]
+                }, webp: {
+                    lossless: true,
+                    method: 6
+                }
             }
         }, optimizers: {
-            gif: require('imagemin-gifsicle'),
-            jpg: require('imagemin-jpegtran'),
-            png: require('imagemin-optipng'),
-            svg: require('imagemin-svgo'),
-            webp: require('imagemin-webp')
+            lossy: {
+                gif: require('imagemin-giflossy'),
+                jpg: require('imagemin-jpegoptim'),
+                png: require('imagemin-pngquant'),
+                svg: require('imagemin-svgo'),
+                webp: require('imagemin-webp')
+            }, lossless: {
+                gif: require('imagemin-gifsicle'),
+                jpg: require('imagemin-jpegtran'),
+                png: require('imagemin-optipng'),
+                svg: require('imagemin-svgo'),
+                webp: require('imagemin-webp')
+            }
         }, responsive: {
             quality: 100,
             compressionLevel: 9,
@@ -75,6 +109,7 @@ Elixir.extend('images', function(src, output, options) {
         optimizers: options && options.optimizers || config.images.optimizers,
         extensions: options && options.extensions || config.images.extensions,
         sizes: options && options.sizes || config.images.sizes,
+        lossy: options && options.lossy || config.images.lossy,
         webp: options && options.webp || config.images.webp
     };
 
@@ -122,7 +157,7 @@ Elixir.extend('images', function(src, output, options) {
 
         var imageminPipe = lazypipe();
 
-        Object.keys(config.images.optimizers).forEach(function (value, index) {
+        Object.keys(config.images.optimizers.lossy).forEach(function (value, index) {
             var filter = $.filter('**/*.' + value, {
                 restore: true,
                 passthrough: false
@@ -132,7 +167,10 @@ Elixir.extend('images', function(src, output, options) {
                 .pipe(function () {
                     return filter;
                 }).pipe(function () {
-                    return config.images.optimizers[value](options.extensions[value])()
+                    var optimizers = options.lossy ? options.optimizers.lossy : options.optimizers.lossless;
+                    var extensions = options.lossy ? options.extensions.lossy : options.extensions.lossless;
+
+                    return optimizers[value](extensions[value])()
                         .on('error', function(e) {
                             new Elixir.Notification().error(e, 'Images Compilation Failed!');
                             this.emit('end');
