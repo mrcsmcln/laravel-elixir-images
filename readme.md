@@ -10,7 +10,7 @@ Use it like this:
 gulp images
 ```
 
-The `--production` flag will engage image optimization in addition to resizing. Works with `gulp watch`, too.
+The `--production` flag, or the `optimize` option, will engage image optimization in addition to resizing. Works with `gulp watch`, too.
 
 ## Installation
 

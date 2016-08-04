@@ -34,6 +34,7 @@ Elixir.extend('images', function(src, output, options) {
         sizes: [[], [1200], [992], [768], [544]],
         webp: true,
         lossy: false,
+        optimize: false,
         extensions: {
             lossy: {
                 gif: {
@@ -206,7 +207,7 @@ Elixir.extend('images', function(src, output, options) {
             .src(paths.src.path)
             .pipe($.if(!config.production, $.changed(paths.output.baseDir)))
             .pipe(responsivePipe())
-            .pipe($.if(config.production, imageminPipe()))
+            .pipe($.if(config.images.optimize || config.production, imageminPipe()))
             .pipe(gulp.dest(paths.output.baseDir))
             .pipe(new Elixir.Notification('Images Compiled!'))
         ;
