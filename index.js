@@ -102,7 +102,7 @@ Elixir.extend('images', function(src, output, options) {
             stats: false,
             silent: true
         }
-    }, config.images);
+    }, config.images || {});
 
     options = {
         responsive: options && options.responsive || config.images.responsive,
